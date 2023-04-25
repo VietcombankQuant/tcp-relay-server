@@ -2,16 +2,21 @@ use std::{net::SocketAddr, str::FromStr};
 
 use tokio::net::TcpListener;
 
+mod config;
 mod handler;
+
+use crate::config::Config;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    let server_addr = SocketAddr::from_str("0.0.0.0:8088")?;
+    let config = Config::from_file("config.toml").await?;
+
+    let server_addr = SocketAddr::from_str(&config.target_server)?;
     log::info!("Target server is at address {}", server_addr);
 
-    let local_addr = SocketAddr::from_str("0.0.0.0:8080")?;
+    let local_addr = SocketAddr::from_str(&config.relay_server)?;
     let listener = TcpListener::bind(local_addr).await?;
     log::info!("TCP relay server is listening at address {}", local_addr);
 

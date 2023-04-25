@@ -1,0 +1,2 @@
+relay-server = "0.0.0.0:8080"
+target-server = "0.0.0.0:8088"
