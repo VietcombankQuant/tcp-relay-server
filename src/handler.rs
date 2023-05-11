@@ -48,10 +48,10 @@ pub(crate) async fn handler(
 
     match results {
         Ok(_) => {
+            log::info!("{} | Disconnected from client {} ", request_id, client_addr);
             log::info!(
-                "{} | Disconnected from client {} and server {}",
+                "{} | Disconnected from target server {} ",
                 request_id,
-                client_addr,
                 server_addr
             );
         }
