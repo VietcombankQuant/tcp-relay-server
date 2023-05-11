@@ -1,12 +1,12 @@
 use std::{io::ErrorKind, net::SocketAddr};
 
 use tokio::net::{
-    tcp::{OwnedReadHalf, OwnedWriteHalf, ReadHalf, WriteHalf},
+    tcp::{OwnedReadHalf, OwnedWriteHalf},
     TcpStream,
 };
 
 pub(crate) async fn handler(
-    mut client_socket: TcpStream,
+    client_socket: TcpStream,
     client_addr: SocketAddr,
     server_addr: SocketAddr,
 ) {
@@ -20,7 +20,7 @@ pub(crate) async fn handler(
     );
 
     // Connect to target server
-    let mut server_socket = match TcpStream::connect(server_addr).await {
+    let server_socket = match TcpStream::connect(server_addr).await {
         Ok(socket) => socket,
         Err(err) => {
             log::error!(
