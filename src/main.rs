@@ -4,12 +4,13 @@ use tokio::net::TcpListener;
 
 mod config;
 mod handler;
+mod utils;
 
 use crate::config::Config;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    env_logger::init();
+    utils::setup_logger();
 
     let config = Config::from_file("config.toml").await?;
 
