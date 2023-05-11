@@ -1,7 +1,7 @@
 use std::{io::ErrorKind, net::SocketAddr};
 
 use tokio::net::{
-    tcp::{ReadHalf, WriteHalf},
+    tcp::{OwnedReadHalf, OwnedWriteHalf, ReadHalf, WriteHalf},
     TcpStream,
 };
 
@@ -39,8 +39,8 @@ pub(crate) async fn handler(
         server_addr
     );
 
-    let (client_reader, client_writer) = client_socket.split();
-    let (server_reader, server_writer) = server_socket.split();
+    let (client_reader, client_writer) = client_socket.into_split();
+    let (server_reader, server_writer) = server_socket.into_split();
     let results = futures::try_join!(
         relay(client_reader, server_writer),
         relay(server_reader, client_writer)
@@ -65,7 +65,7 @@ pub(crate) async fn handler(
     };
 }
 
-async fn relay<'a>(reader: ReadHalf<'a>, writer: WriteHalf<'a>) -> anyhow::Result<()> {
+async fn relay(reader: OwnedReadHalf, writer: OwnedWriteHalf) -> anyhow::Result<()> {
     const BUF_SIZE: usize = 256;
     let mut buffer: [u8; BUF_SIZE] = [0; BUF_SIZE];
 
