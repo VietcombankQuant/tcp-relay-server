@@ -5,14 +5,13 @@ use tokio::net::{
     TcpStream,
 };
 
-pub(crate) async fn handler(
-    client_socket: TcpStream,
-    client_addr: SocketAddr,
-    server_addr: SocketAddr,
-) {
+use crate::config::Config;
+
+pub(crate) async fn handler(connection: (TcpStream, SocketAddr), config: Config) {
     // Log new connection with unique id
     let request_id = uuid::Uuid::new_v4().hyphenated().to_string();
 
+    let (client_socket, client_addr) = connection;
     log::info!(
         "{} | Accept new connection from address {}",
         request_id,
@@ -20,13 +19,13 @@ pub(crate) async fn handler(
     );
 
     // Connect to target server
-    let server_socket = match TcpStream::connect(server_addr).await {
+    let server_socket = match TcpStream::connect(config.target_server).await {
         Ok(socket) => socket,
         Err(err) => {
             log::error!(
                 "{} | Failed to connect to target address {} with error {}",
                 request_id,
-                server_addr,
+                config.target_server,
                 err.to_string()
             );
             return;
@@ -36,7 +35,7 @@ pub(crate) async fn handler(
     log::info!(
         "{} | Connected to target server {}",
         request_id,
-        server_addr
+        config.target_server
     );
 
     let (client_reader, client_writer) = client_socket.into_split();
@@ -52,7 +51,7 @@ pub(crate) async fn handler(
             log::info!(
                 "{} | Disconnected from target server {} ",
                 request_id,
-                server_addr
+                config.target_server
             );
         }
         Err(err) => {

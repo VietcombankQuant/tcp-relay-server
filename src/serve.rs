@@ -23,8 +23,8 @@ pub(crate) async fn serve(config: Config) {
 
     loop {
         match listener.accept().await {
-            Ok((client_socket, client_addr)) => {
-                let handler = handler::handler(client_socket, client_addr, config.target_server);
+            Ok(connection) => {
+                let handler = handler::handler(connection, config);
                 tokio::spawn(handler);
             }
             Err(err) => {
