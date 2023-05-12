@@ -3,8 +3,6 @@ use tokio::net::TcpListener;
 use crate::{config::Config, handler};
 
 pub(crate) async fn serve(config: Config) {
-    log::info!("Target server is at address {}", config.target_server);
-
     let listener = match TcpListener::bind(config.relay_server).await {
         Ok(listener) => listener,
         Err(err) => {
@@ -18,8 +16,9 @@ pub(crate) async fn serve(config: Config) {
     };
 
     log::info!(
-        "TCP relay server is listening at address {}",
-        config.relay_server
+        "Server is listening at \"{}\" and forward packets to \"{}\"",
+        config.relay_server,
+        config.target_server
     );
 
     loop {
