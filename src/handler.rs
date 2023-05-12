@@ -5,7 +5,10 @@ use tokio::net::{
     TcpStream,
 };
 
-use crate::{config::Config, registry::ConnectionRegistry};
+use crate::{
+    config::Config,
+    registry::{ConnectionKey, ConnectionRegistry},
+};
 
 pub(crate) async fn handler(
     connection: (TcpStream, SocketAddr),
@@ -43,7 +46,12 @@ pub(crate) async fn handler(
     );
 
     // Increase count for the connection
-    registry.increase(config).await;
+    let connection = ConnectionKey {
+        client: client_addr,
+        relay_server: config.relay_server,
+        target_server: config.target_server,
+    };
+    registry.increase(connection).await;
 
     // Launch new jobs to relay packets bidirectionaly
     let (client_reader, client_writer) = client_socket.into_split();
@@ -54,7 +62,7 @@ pub(crate) async fn handler(
     );
 
     // Decrease count
-    registry.decrease(config).await;
+    registry.decrease(connection).await;
 
     // Finalize
     match results {
