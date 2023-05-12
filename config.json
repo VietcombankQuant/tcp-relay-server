@@ -1,2 +1,10 @@
-relay-server = "0.0.0.0:8080"
-target-server = "0.0.0.0:8088"
+[
+  {
+    "relay-server": "0.0.0.0:8080",
+    "target-server": "localhost:8088"
+  },
+  {
+    "relay-server": "0.0.0.0:8081",
+    "target-server": "localhost:8089"
+  }
+]
