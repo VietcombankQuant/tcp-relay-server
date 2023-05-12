@@ -19,14 +19,16 @@ impl Config {
         let mut results = Vec::new();
         for config in configs {
             let result = Self {
-                relay_server: SocketAddr::from_str(&config.relay_server)
-                    .map_err(|err| ConfigError::SocketAddr(err))?,
-                target_server: SocketAddr::from_str(&config.target_server)
-                    .map_err(|err| ConfigError::SocketAddr(err))?,
+                relay_server: Self::parse_socket_addr(&config.relay_server)?,
+                target_server: Self::parse_socket_addr(&config.target_server)?,
             };
             results.push(result);
         }
         Ok(results)
+    }
+
+    fn parse_socket_addr(addr: &str) -> Result<SocketAddr, ConfigError> {
+        SocketAddr::from_str(addr).map_err(|err| ConfigError::SocketAddr(err))
     }
 }
 
