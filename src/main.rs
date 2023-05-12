@@ -1,12 +1,12 @@
-mod accounting;
 mod config;
 mod handler;
+mod registry;
 mod serve;
 mod utils;
 
 use std::time::Duration;
 
-use crate::{accounting::ConnectionRegistry, config::Config, serve::serve};
+use crate::{config::Config, registry::ConnectionRegistry, serve::serve};
 
 async fn monitor_registry(registry: ConnectionRegistry) {
     loop {

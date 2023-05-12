@@ -5,7 +5,7 @@ use tokio::net::{
     TcpStream,
 };
 
-use crate::{accounting::ConnectionRegistry, config::Config};
+use crate::{config::Config, registry::ConnectionRegistry};
 
 pub(crate) async fn handler(
     connection: (TcpStream, SocketAddr),

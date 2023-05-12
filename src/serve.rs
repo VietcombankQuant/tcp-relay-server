@@ -1,6 +1,6 @@
 use tokio::net::TcpListener;
 
-use crate::{accounting::ConnectionRegistry, config::Config, handler};
+use crate::{config::Config, handler, registry::ConnectionRegistry};
 
 pub(crate) async fn serve(config: Config, registry: ConnectionRegistry) {
     let listener = match TcpListener::bind(config.relay_server).await {
