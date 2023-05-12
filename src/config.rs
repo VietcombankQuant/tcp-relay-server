@@ -19,16 +19,12 @@ impl Config {
         let mut results = Vec::new();
         for config in configs {
             let result = Self {
-                relay_server: Self::parse_socket_addr(&config.relay_server)?,
-                target_server: Self::parse_socket_addr(&config.target_server)?,
+                relay_server: parse_socket_addr(&config.relay_server)?,
+                target_server: parse_socket_addr(&config.target_server)?,
             };
             results.push(result);
         }
         Ok(results)
-    }
-
-    fn parse_socket_addr(addr: &str) -> Result<SocketAddr, ConfigError> {
-        SocketAddr::from_str(addr).map_err(|err| ConfigError::SocketAddr(err))
     }
 }
 
@@ -42,6 +38,10 @@ pub(crate) enum ConfigError {
 
     #[error("socket address resolve error {0}")]
     SocketAddr(AddrParseError),
+}
+
+fn parse_socket_addr(addr: &str) -> Result<SocketAddr, ConfigError> {
+    SocketAddr::from_str(addr).map_err(|err| ConfigError::SocketAddr(err))
 }
 
 mod internal {
