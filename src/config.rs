@@ -18,11 +18,11 @@ pub(crate) enum ConfigError {
     IO(std::io::Error),
 
     #[error("TOML decoding error {0}")]
-    TomlDecode(toml::de::Error),
+    JsonDecode(serde_json::Error),
 }
 
 impl Config {
-    pub(crate) async fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, ConfigError> {
+    pub(crate) async fn from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Self>, ConfigError> {
         use tokio::fs::File;
         use tokio::io::AsyncReadExt;
 
@@ -37,9 +37,9 @@ impl Config {
             Err(err) => return Err(ConfigError::IO(err)),
         };
 
-        let config: Config = match toml::from_str(&contents) {
+        let config: Vec<Config> = match serde_json::from_str(&contents) {
             Ok(config) => config,
-            Err(err) => return Err(ConfigError::TomlDecode(err)),
+            Err(err) => return Err(ConfigError::JsonDecode(err)),
         };
 
         return Ok(config);
