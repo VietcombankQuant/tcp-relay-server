@@ -1,8 +1,8 @@
 use tokio::net::TcpListener;
 
-use crate::{config::Config, handler};
+use crate::{accounting::ConnectionRegistry, config::Config, handler};
 
-pub(crate) async fn serve(config: Config) {
+pub(crate) async fn serve(config: Config, registry: ConnectionRegistry) {
     let listener = match TcpListener::bind(config.relay_server).await {
         Ok(listener) => listener,
         Err(err) => {
@@ -24,7 +24,8 @@ pub(crate) async fn serve(config: Config) {
     loop {
         match listener.accept().await {
             Ok(connection) => {
-                let handler = handler::handler(connection, config);
+                let registry = registry.clone();
+                let handler = handler::handler(connection, config, registry);
                 tokio::spawn(handler);
             }
             Err(err) => {

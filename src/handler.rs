@@ -5,9 +5,13 @@ use tokio::net::{
     TcpStream,
 };
 
-use crate::config::Config;
+use crate::{accounting::ConnectionRegistry, config::Config};
 
-pub(crate) async fn handler(connection: (TcpStream, SocketAddr), config: Config) {
+pub(crate) async fn handler(
+    connection: (TcpStream, SocketAddr),
+    config: Config,
+    registry: ConnectionRegistry,
+) {
     // Log new connection with unique id
     let request_id = uuid::Uuid::new_v4().hyphenated().to_string();
 
@@ -38,6 +42,9 @@ pub(crate) async fn handler(connection: (TcpStream, SocketAddr), config: Config)
         config.target_server
     );
 
+    // Increase count for the connection
+    registry.increase(config).await;
+
     // Launch new jobs to relay packets bidirectionaly
     let (client_reader, client_writer) = client_socket.into_split();
     let (server_reader, server_writer) = server_socket.into_split();
@@ -45,6 +52,9 @@ pub(crate) async fn handler(connection: (TcpStream, SocketAddr), config: Config)
         relay(client_reader, server_writer),
         relay(server_reader, client_writer)
     );
+
+    // Decrease count
+    registry.decrease(config).await;
 
     // Finalize
     match results {
