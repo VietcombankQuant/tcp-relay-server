@@ -38,6 +38,7 @@ pub(crate) async fn handler(connection: (TcpStream, SocketAddr), config: Config)
         config.target_server
     );
 
+    // Launch new jobs to relay packets bidirectionaly
     let (client_reader, client_writer) = client_socket.into_split();
     let (server_reader, server_writer) = server_socket.into_split();
     let results = futures::try_join!(
@@ -45,6 +46,7 @@ pub(crate) async fn handler(connection: (TcpStream, SocketAddr), config: Config)
         relay(server_reader, client_writer)
     );
 
+    // Finalize
     match results {
         Ok(_) => {
             log::info!("{} | Disconnected from client {} ", request_id, client_addr);
