@@ -1,19 +1,22 @@
 use std::{io::ErrorKind, net::SocketAddr};
 
-use tokio::net::{
-    tcp::{OwnedReadHalf, OwnedWriteHalf},
-    TcpStream,
+use tokio::{
+    net::{
+        tcp::{OwnedReadHalf, OwnedWriteHalf},
+        TcpStream,
+    },
+    sync::mpsc::UnboundedSender,
 };
 
 use crate::{
-    book_keeper::{ConnectionKey, ConnectionRegistry},
+    book_keeper::{ConnectionEvent, ConnectionKey},
     config::Config,
 };
 
 pub(crate) async fn handler(
     connection: (TcpStream, SocketAddr),
     config: Config,
-    registry: ConnectionRegistry,
+    event_sender: UnboundedSender<ConnectionEvent>,
 ) {
     // Log new connection with unique id
     let request_id = uuid::Uuid::new_v4().hyphenated().to_string();
@@ -51,7 +54,7 @@ pub(crate) async fn handler(
         relay_server: config.relay_server,
         target_server: config.target_server,
     };
-    registry.increase(connection).await;
+    event_sender.send(ConnectionEvent::New(connection));
 
     // Launch new jobs to relay packets bidirectionaly
     let (client_reader, client_writer) = client_socket.into_split();
@@ -62,7 +65,7 @@ pub(crate) async fn handler(
     );
 
     // Decrease count
-    registry.decrease(connection).await;
+    event_sender.send(ConnectionEvent::Disconnect(connection));
 
     // Finalize
     match results {
