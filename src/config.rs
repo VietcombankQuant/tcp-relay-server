@@ -7,7 +7,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Serialize, Deserialize, Clone, Copy, Hash, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Hash, Debug, PartialEq, Eq)]
 pub(crate) struct Config {
     pub relay_server: SocketAddr,
     pub target_server: SocketAddr,
