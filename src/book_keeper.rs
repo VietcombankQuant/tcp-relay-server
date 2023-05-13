@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     hash::Hash,
     net::{IpAddr, SocketAddr},
     ops::{Deref, DerefMut},
@@ -12,7 +12,7 @@ use tokio::sync::{
     Mutex,
 };
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord, Hash)]
 pub(crate) struct ConnectionKey {
     pub client: IpAddr,
     pub relay_server: SocketAddr,
@@ -29,13 +29,13 @@ pub(crate) enum ConnectionEvent {
 pub(crate) struct ConnBookKeeper {
     sender: UnboundedSender<ConnectionEvent>,
     receiver: UnboundedReceiver<ConnectionEvent>,
-    counter: Arc<Mutex<HashMap<ConnectionKey, usize>>>,
+    counter: Arc<Mutex<BTreeMap<ConnectionKey, usize>>>,
 }
 
 impl ConnBookKeeper {
     pub(crate) fn new() -> (ConnBookKeeper, UnboundedSender<ConnectionEvent>) {
         let (sender, receiver) = tokio::sync::mpsc::unbounded_channel();
-        let counter = Arc::new(Mutex::new(HashMap::new()));
+        let counter = Arc::new(Mutex::new(BTreeMap::new()));
 
         (
             Self {
