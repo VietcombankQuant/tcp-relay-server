@@ -4,24 +4,14 @@ mod handler;
 mod serve;
 mod utils;
 
-use std::time::Duration;
-
 use crate::{book_keeper::ConnBookKeeper, config::Config, serve::serve};
-
-async fn monitor_registry(registry: ConnBookKeeper) {
-    loop {
-        let counters = registry.copy_inner().await;
-        println!("Hello World {:#?}", counters);
-        tokio::time::sleep(Duration::from_secs(1)).await;
-    }
-}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     utils::setup_logger();
 
     let configs = Config::from_file("config.json").await?;
-    let (connection_book ,event_sender)= ConnBookKeeper::new();
+    let (connection_book, event_sender) = ConnBookKeeper::new();
     tokio::spawn(connection_book.process_events());
 
     let handles: Vec<_> = configs

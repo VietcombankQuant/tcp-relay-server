@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     net::{IpAddr, SocketAddr},
-    ops::{Deref, DerefMut},
+    ops::DerefMut,
     sync::Arc,
 };
 
@@ -60,10 +60,5 @@ impl ConnBookKeeper {
         if *count == 0 {
             guard.remove_entry(&connection);
         }
-    }
-
-    pub(crate) async fn copy_inner(&self) -> HashMap<ConnectionKey, usize> {
-        let guard = self.counter.lock().await;
-        guard.deref().clone()
     }
 }
