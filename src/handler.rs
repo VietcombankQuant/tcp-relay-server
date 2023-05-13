@@ -54,7 +54,14 @@ pub(crate) async fn handler(
         relay_server: config.relay_server,
         target_server: config.target_server,
     };
-    event_sender.send(ConnectionEvent::New(connection));
+    _ = event_sender
+        .send(ConnectionEvent::New(connection))
+        .map_err(|err| {
+            log::error!(
+                "Failed to send message to unbounded channel with error {}",
+                err.to_string()
+            );
+        });
 
     // Launch new jobs to relay packets bidirectionaly
     let (client_reader, client_writer) = client_socket.into_split();
@@ -65,7 +72,14 @@ pub(crate) async fn handler(
     );
 
     // Decrease count
-    event_sender.send(ConnectionEvent::Disconnect(connection));
+    _ = event_sender
+        .send(ConnectionEvent::Disconnect(connection))
+        .map_err(|err| {
+            log::error!(
+                "Failed to send message to unbounded channel with error {}",
+                err.to_string()
+            );
+        });
 
     // Finalize
     match results {
