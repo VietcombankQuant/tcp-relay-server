@@ -101,7 +101,7 @@ pub(crate) async fn handler(
     };
 }
 
-async fn relay(reader: OwnedReadHalf, writer: OwnedWriteHalf) -> anyhow::Result<()> {
+async fn relay(reader: OwnedReadHalf, writer: OwnedWriteHalf) -> std::io::Result<()> {
     const BUF_SIZE: usize = 1024;
     let mut buffer: [u8; BUF_SIZE] = [0; BUF_SIZE];
 

@@ -7,10 +7,20 @@ mod utils;
 use crate::{book_keeper::ConnBookKeeper, config::Config, serve::serve};
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() {
     utils::setup_logger();
 
-    let configs = Config::from_file("config.json").await?;
+    let configs = match Config::from_file("config.json").await {
+        Ok(configs) => configs,
+        Err(err) => {
+            log::error!(
+                "Failed to read from config file with error {}",
+                err.to_string()
+            );
+            return;
+        }
+    };
+
     let (connection_book, event_sender) = ConnBookKeeper::new();
     tokio::spawn(connection_book.process_events());
 
@@ -31,6 +41,4 @@ async fn main() -> anyhow::Result<()> {
             }
         }
     }
-
-    Ok(())
 }
