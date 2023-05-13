@@ -65,7 +65,7 @@ pub(crate) async fn handler(connection: (TcpStream, SocketAddr), config: Config)
 }
 
 async fn relay(reader: OwnedReadHalf, writer: OwnedWriteHalf) -> anyhow::Result<()> {
-    const BUF_SIZE: usize = 256;
+    const BUF_SIZE: usize = 1024;
     let mut buffer: [u8; BUF_SIZE] = [0; BUF_SIZE];
 
     loop {
