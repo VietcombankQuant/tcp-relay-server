@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    hash::Hash,
     net::{IpAddr, SocketAddr},
     ops::{Deref, DerefMut},
     sync::Arc,
@@ -89,12 +90,34 @@ impl ConnBookKeeper {
 
     async fn list_all(&self) {
         let guard = self.counter.lock().await;
-        guard
+        let connections = guard
             .deref()
             .iter()
-            .map(|(key, value)| {
-                log::info!("{:?}: {:#}", key, value);
-            })
-            .for_each(drop);
+            .map(|(conn, count)| (conn.clone(), count.clone()))
+            .collect::<Vec<_>>();
+
+        tokio::spawn(async move {
+            use prettytable::{row, Table};
+
+            let mut table = Table::new();
+            _ = table.add_row(row![
+                "Relay Server",
+                "Target Server",
+                "Client IP",
+                "Number Connections"
+            ]);
+
+            for (conn, count) in connections.iter() {
+                let row = row![conn.relay_server, conn.target_server, conn.client, count];
+                _ = table.add_row(row);
+            }
+
+            if connections.is_empty() {
+                _ = table.add_empty_row();
+            }
+
+            let records = table.to_string();
+            log::info!("Active connections:\n{}", records);
+        });
     }
 }
