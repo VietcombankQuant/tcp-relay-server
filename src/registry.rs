@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    net::SocketAddr,
+    net::{IpAddr, SocketAddr},
     ops::{Deref, DerefMut},
     sync::Arc,
 };
@@ -9,7 +9,7 @@ use tokio::sync::Mutex;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub(crate) struct ConnectionKey {
-    pub client: SocketAddr,
+    pub client: IpAddr,
     pub relay_server: SocketAddr,
     pub target_server: SocketAddr,
 }

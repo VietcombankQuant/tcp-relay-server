@@ -47,7 +47,7 @@ pub(crate) async fn handler(
 
     // Increase count for the connection
     let connection = ConnectionKey {
-        client: client_addr,
+        client: client_addr.ip(),
         relay_server: config.relay_server,
         target_server: config.target_server,
     };
