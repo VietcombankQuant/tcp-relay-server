@@ -6,8 +6,8 @@ use tokio::net::{
 };
 
 use crate::{
+    book_keeper::{ConnectionKey, ConnectionRegistry},
     config::Config,
-    registry::{ConnectionKey, ConnectionRegistry},
 };
 
 pub(crate) async fn handler(

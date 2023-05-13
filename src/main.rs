@@ -1,12 +1,12 @@
+mod book_keeper;
 mod config;
 mod handler;
-mod registry;
 mod serve;
 mod utils;
 
 use std::time::Duration;
 
-use crate::{config::Config, registry::ConnectionRegistry, serve::serve};
+use crate::{book_keeper::ConnectionRegistry, config::Config, serve::serve};
 
 async fn monitor_registry(registry: ConnectionRegistry) {
     loop {
