@@ -1,12 +1,6 @@
-use std::{io::ErrorKind, net::SocketAddr};
+use std::net::SocketAddr;
 
-use tokio::{
-    net::{
-        tcp::{OwnedReadHalf, OwnedWriteHalf},
-        TcpStream,
-    },
-    sync::mpsc::UnboundedSender,
-};
+use tokio::{net::TcpStream, sync::mpsc::UnboundedSender};
 
 use crate::{
     book_keeper::{ConnectionEvent, ConnectionKey},
@@ -21,7 +15,7 @@ pub(crate) async fn handler(
     // Log new connection with unique id
     let request_id = uuid::Uuid::new_v4().hyphenated().to_string();
 
-    let (client_socket, client_addr) = connection;
+    let (mut client_socket, client_addr) = connection;
     log::info!(
         "{} | Accept new connection from address {}",
         request_id,
@@ -29,7 +23,7 @@ pub(crate) async fn handler(
     );
 
     // Connect to target server
-    let server_socket = match TcpStream::connect(config.target_server).await {
+    let mut server_socket = match TcpStream::connect(config.target_server).await {
         Ok(socket) => socket,
         Err(err) => {
             log::error!(
@@ -63,25 +57,8 @@ pub(crate) async fn handler(
             );
         });
 
-    // Launch new jobs to relay packets bidirectionaly
-    let (client_reader, client_writer) = client_socket.into_split();
-    let (server_reader, server_writer) = server_socket.into_split();
-    let results = futures::try_join!(
-        relay(client_reader, server_writer),
-        relay(server_reader, client_writer)
-    );
-
-    // Decrease count
-    _ = event_sender
-        .send(ConnectionEvent::Disconnect(connection))
-        .map_err(|err| {
-            log::error!(
-                "Failed to send message to unbounded channel with error {}",
-                err.to_string()
-            );
-        });
-
-    // Finalize
+    // Relay packets bidirectionaly
+    let results = tokio::io::copy_bidirectional(&mut server_socket, &mut client_socket).await;
     match results {
         Ok(_) => {
             log::info!("{} | Disconnected from client {} ", request_id, client_addr);
@@ -99,31 +76,14 @@ pub(crate) async fn handler(
             );
         }
     };
-}
 
-async fn relay(reader: OwnedReadHalf, writer: OwnedWriteHalf) -> std::io::Result<()> {
-    const BUF_SIZE: usize = 1024;
-    let mut buffer: [u8; BUF_SIZE] = [0; BUF_SIZE];
-
-    loop {
-        reader.readable().await?;
-
-        match reader.try_read(&mut buffer) {
-            Ok(n) => match n {
-                0 => {
-                    return Ok(());
-                }
-                n => {
-                    writer.writable().await?;
-                    writer.try_write(&buffer[..n])?;
-                }
-            },
-            Err(ref err) if err.kind() == ErrorKind::WouldBlock => {
-                continue;
-            }
-            Err(err) => {
-                return Err(err.into());
-            }
-        }
-    }
+    // Decrease count
+    _ = event_sender
+        .send(ConnectionEvent::Disconnect(connection))
+        .map_err(|err| {
+            log::error!(
+                "Failed to send message to unbounded channel with error {}",
+                err.to_string()
+            );
+        });
 }
